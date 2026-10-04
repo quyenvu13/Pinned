@@ -10,3 +10,4 @@
   disabled with the contract's own sentences, the negotiation ledger, exact decimal amounts, live calldata meter,
   receipt rule (ACCEPTED before success) and postcondition checks.
 - Project deployment of the same frozen source at its own address `0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2`.
+- Project run through the live app with two wallets: 7 transactions and 3 screenshots, all as expected.

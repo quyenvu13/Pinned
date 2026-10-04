@@ -12,6 +12,7 @@ A GenLayer dApp on StudioNet (chain 61999) built on the Intelligent Contract `Te
 
 | | |
 |---|---|
+| Live app | https://pinned-three.vercel.app |
 | Project contract | [`0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2`](https://explorer-studio.genlayer.com/address/0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2) |
 | Intelligent Contract (separate submission) | `0x2719e3e965ced1c6bb227ae717A57287AE1D430a` |
 | Source SHA-256 | `f97f02ce20d5395791eccdaabeabed3ba434155a2695e7bd0b9f8f7ccaf357a5` (`SOURCE_SHA256.txt`) |
@@ -33,6 +34,8 @@ difference between the two terms is the text.
 
 ## What the app shows
 
+![The same 4,000 from the same wallet: 1 of 1 binding next to 1 of 2 not binding yet](docs/evidence/1-same-sum-side-by-side.png)
+
 - **A signature gauge** under every text, read from `get_term`: *Signatures: 0 of 1 — not binding yet* the moment a
   term is opened, then *1 of 1 — binding* or *1 of 2 — not binding yet*, then *2 of 2 — binding*. The app never works
   out the threshold itself.
@@ -47,6 +50,10 @@ difference between the two terms is the text.
   sends a duplicate. Success is reported only after the transaction is ACCEPTED and the reloaded state shows the change.
   Amounts are kept as decimal strings end to end (10^18 does not fit a JS number). A live meter blocks calldata over
   255 bytes.
+
+![The pinned term: two locked buttons, two different sentences](docs/evidence/2-pinned-two-locked-buttons.png)
+
+![The open term after two rounds from two wallets: 2 of 2, binding](docs/evidence/3-open-term-two-signatures.png)
 
 ## How to try it
 

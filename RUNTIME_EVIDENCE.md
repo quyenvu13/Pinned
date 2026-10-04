@@ -9,23 +9,38 @@ Every row: wallet, method, exact input, expected, tx hash, execution result, pos
 Project contract: [`0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2`](https://explorer-studio.genlayer.com/address/0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2) — the same frozen source deployed again at its own
 address (not the Intelligent Contract address). Deploy tx `0x1b97d385539cbf530c9cccf7029fe00ba0b7ced4be12845a9a7b03e113931d90` (SUCCESS).
 
+Run date 2026-10-04, through the live app (https://pinned-three.vercel.app) with MetaMask. Every success below was
+reported by the app only after the transaction was ACCEPTED, the leader receipt said SUCCESS and the reloaded state
+showed the change.
+
+Wallets: author `0x923a09d0D6e5C242e36C3c1D2071835917cC0bDF` · other side `0x10AaA763DB250e4856210Dfb91B57780F60e9879`.
+Both terms were opened with the label `the other side.` (with a final full stop, as typed).
+
 | # | Wallet | Action in the app | Expected | Tx hash | Result | Status |
 |---|---|---|---|---|---|---|
-| P1 | author | Open X4 (`The amount is whatever the published list says on the day of order.`) | `FIXED`, PINNED, 0 of 1 | — | — | NOT RUN |
-| P2 | author | Record 4000 on X4 | FINAL, 1 of 1, binding | — | — | NOT RUN |
-| P3 | author | Open Y4 (`The amount is whatever the parties arrive at in good faith.`) | `TO_BE_AGREED`, OPEN_TERM, 0 of 2 | — | — | NOT RUN |
-| P4 | author | Record 4000 on Y4 | PROPOSED, 1 of 2, not binding | — | — | NOT RUN |
-| P5 | other | Reject on Y4, note `Too high for the first month` | AWAITING, round 1 kept with the note | — | — | NOT RUN |
-| P6 | other | Record 3500 on Y4 | PROPOSED, round 2 by the other wallet | — | — | NOT RUN |
-| P7 | author | Counter-sign Y4 | FINAL, 2 of 2, binding | — | — | NOT RUN |
+| P1 | author | Open X4 (`The amount is whatever the published list says on the day of order.`) | `FIXED`, PINNED, 0 of 1 | `0xe16d53fb3f3279bdbe34fdab5fac458ddfc45c826801209254793dbb0b6a7ae4` | SUCCESS; card *Pinned*, reading FIXED, *Signatures: 0 of 1 — not binding yet* | PASS |
+| P2 | author | Record 4000 on X4 | FINAL, 1 of 1, binding | `0x8166943df1736546d235d683ebfccf0d4ef51c2356bdcc1515965cc0f4add417` | SUCCESS; FINAL, *Signatures: 1 of 1 — binding*, countersigned_by empty | PASS |
+| P3 | author | Open Y4 (`The amount is whatever the parties arrive at in good faith.`) | `TO_BE_AGREED`, OPEN_TERM, 0 of 2 | `0x31a5ddb55373bc2d7d47a7857f0a9ceca2c592d96f0a52e0759143d2f66d2ff9` | SUCCESS; card *Open term*, reading TO_BE_AGREED, *Signatures: 0 of 2 — not binding yet*, Round 0 of 10 | PASS |
+| P4 | author | Record 4000 on Y4 | PROPOSED, 1 of 2, not binding | `0x28e95c1e59c88a975485942e567c1d651648bbfd0798b274e11e99e83ede050c` | SUCCESS; PROPOSED, *Signatures: 1 of 2 — not binding yet*, *This sum does not bind anyone yet* | PASS |
+| P5 | other | Reject on Y4, note `Too high for the first month` | AWAITING, round 1 kept with the note | `0xa56acb2f7070ca4ab12a34333f538e84382ba3eadf2250222ded0700190eeaff` | SUCCESS; AWAITING, 0 of 2, ledger round 1: 4,000 by the author, *"Too high for the first month"* | PASS |
+| P6 | other | Record 3500 on Y4 | PROPOSED, round 2 by the other wallet | `0x9e268fe9c77d00149d1695f8bd5920b26adeae81c91bddc27cf3cdc2bc5a1f5` | SUCCESS; PROPOSED 3,500, proposed_by `0x10aaa763db250e4856210dfb91b57780f60e9879`, Round 2 of 10 | PASS |
+| P7 | author | Counter-sign Y4 | FINAL, 2 of 2, binding | `0x218c66884aa522333c81bf60bc87d013d6ec8869893fee019a9f4e3396dc92ac` | SUCCESS; FINAL 3,500, countersigned_by `0x923a09d0d6e5c242e36c3c1d2071835917cc0bdf`, *Signatures: 2 of 2 — binding* | PASS |
+
+7 transactions, all as expected. Term ids (author `0x923a…0bdf`, the same as on the Intelligent Contract because the id
+hashes author and text): X4 `a7732854c638c966b2f2d8683279ad0efea720a710209d2f8d36ce49e91e5b80` ·
+Y4 `ca831be4a1bae96306a5e94005190849235b30126ab155e3010137b9d4792d3b`.
 
 ### Screenshots
 
-| # | What it must show | Status |
+| # | File | What it shows |
 |---|---|---|
-| 1 | Side by side after P4: *Signatures: 1 of 1 — binding* next to *Signatures: 1 of 2 — not binding yet*, chips FINAL and PROPOSED, *This sum does not bind anyone yet* | NOT RUN |
-| 2 | the pinned term: Counter-sign disabled with *This sum is fixed by the text; no counter-signature is needed* and Reject disabled with *There is nothing to reject; the text fixes this sum* | NOT RUN |
-| 3 | the open term after P7: FINAL, 2 of 2, the ledger with two rounds from two different wallets and the round-1 rejection | NOT RUN |
+| 1 | `docs/evidence/1-same-sum-side-by-side.png` | after P4, author connected: *Signatures: 1 of 1 — binding* next to *Signatures: 1 of 2 — not binding yet*, chips FINAL and PROPOSED, *This sum does not bind anyone yet*; the same 4,000 from the same wallet |
+| 2 | `docs/evidence/2-pinned-two-locked-buttons.png` | the other side connected, a note typed on both cards: on the pinned term Counter-sign is disabled with *This sum is fixed by the text; no counter-signature is needed* and Reject with *There is nothing to reject; the text fixes this sum*; on the open term both are enabled |
+| 3 | `docs/evidence/3-open-term-two-signatures.png` | after P7: the open term FINAL, *Signatures: 2 of 2 — binding*, the ledger with round 1 (4,000, author, rejected *"Too high for the first month"*) and round 2 (3,500, other side, counter-signed) — two different wallets |
+| — | `docs/evidence/4-pinned-opened-0-of-1.png` | right after P1: the gauge at 0 of 1 before any amount |
+| — | `docs/evidence/5-open-term-opened-0-of-2.png` | right after P3: the gauge at 0 of 2, *Round 0 of 10* |
+| — | `docs/evidence/6-rejected-round-1.png` | right after P5: back to AWAITING, the rejection kept in the ledger |
+| — | `docs/evidence/7-other-side-proposed-3500.png` | right after P6: round 2 proposed by the other wallet; the proposer's Counter-sign and Reject disabled |
 
 Calls the app already knows will revert are not sent: the button is disabled with the contract's sentence, and the
 proof is a screenshot, not a hash.

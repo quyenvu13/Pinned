@@ -61,7 +61,7 @@ Only what needs a real wallet, a real signature or a human eye. Results and hash
   Labels X4, Y4, X3, Y3 as expected; the same 4000 gave FINAL and PROPOSED; both teeth, the proposer block, the loop
   and the two-wallet counter-signature all passed.
 - Project: the same frozen source deployed again at its own address, then 7 transactions through the app and
-  3 screenshots.
+  3 screenshots. All passed.
 
 A call the app already knows will revert is **not** sent — the button is disabled with the contract's sentence — so
 its proof in the Project run is a screenshot, not a hash.
