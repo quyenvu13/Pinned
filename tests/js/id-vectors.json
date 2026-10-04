@@ -1,0 +1,59 @@
+{
+  "author": "0x3065e31b1d993d7c0d59e6786844cba56780b2d3",
+  "terms": [
+    {
+      "text": "The amount is whatever the published list says on the day of order.",
+      "normalized": "The amount is whatever the published list says on the day of order.",
+      "py_len": 67,
+      "term_id": "e9bce3ad8eda932009b2de28799e32aed5cc0bc33662ededf89f0b018ed9144f"
+    },
+    {
+      "text": "The amount is whatever the parties arrive at in good faith.",
+      "normalized": "The amount is whatever the parties arrive at in good faith.",
+      "py_len": 59,
+      "term_id": "0c556234255b9b43773e007a75c15ceb31a07a346476ab24e261f292150f90b4"
+    },
+    {
+      "text": "Each additional seat costs the same as the first.",
+      "normalized": "Each additional seat costs the same as the first.",
+      "py_len": 49,
+      "term_id": "553ca5ac2a22c10cd71fbe5d690b71b80405c5498eb360685cbf793976bc57ff"
+    },
+    {
+      "text": "Each additional seat costs whatever we later think reasonable.",
+      "normalized": "Each additional seat costs whatever we later think reasonable.",
+      "py_len": 62,
+      "term_id": "66e135b12c7e0391f78cb496b0c8e778f1463bb1454664370b716e3f8b5d4a58"
+    },
+    {
+      "text": "  The fee is\t4,000\na month.  ",
+      "normalized": "The fee is 4,000 a month.",
+      "py_len": 25,
+      "term_id": "7aa44cb451eb95c9e50b7d6405bd5c225f202b92b9b81f629ad370fecebf802c"
+    },
+    {
+      "text": "\u001cThe total is the unit price times the quantity ordered.\u001f",
+      "normalized": "The total is the unit price times the quantity ordered.",
+      "py_len": 55,
+      "term_id": "40b20b105891bd6f03c41a3f86a8f154a08ebf31acf27fe128ecc3a52c1933db"
+    },
+    {
+      "text": "The rateis\u001dto be\u001ediscussed.",
+      "normalized": "The rate is to be discussed.",
+      "py_len": 28,
+      "term_id": "b0963d916822922ce9c7d33772648576527ae7ed6d49781d6f57d62083267277"
+    },
+    {
+      "text": "﻿The fee is fixed.",
+      "normalized": "﻿The fee is fixed.",
+      "py_len": 18,
+      "term_id": "d6a05d4eb381e1b62593e1648ef005a4ba8239115cedc63fe05d646d38dad2b5"
+    },
+    {
+      "text": "Le prix — fixé　d'avance. 💶",
+      "normalized": "Le prix — fixé d'avance. 💶",
+      "py_len": 26,
+      "term_id": "cee06e128a3aa3c674539a994727f0fd800e1c8ce3a69fdab2198192cfbff71c"
+    }
+  ]
+}

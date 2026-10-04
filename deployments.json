@@ -1,0 +1,7 @@
+{
+    "network": "GenLayer StudioNet",
+    "chain_id": 61999,
+    "source_sha256": "f97f02ce20d5395791eccdaabeabed3ba434155a2695e7bd0b9f8f7ccaf357a5",
+    "intelligent_contract": "0x2719e3e965ced1c6bb227ae717A57287AE1D430a",
+    "project": "0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2"
+}
