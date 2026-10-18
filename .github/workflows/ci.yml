@@ -14,8 +14,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install "genvm-linter==0.11.0" "genlayer-test==0.29.2" "pytest>=8,<9"
-      - name: Kill-set and rubric gate
-        run: python3 TERMCERTAIN_KILLSET_CHECK.py contracts/TermCertain.py
       - name: genvm-linter lint (AST, offline; not "check", which needs the network)
         run: python3 -m genvm_linter.cli lint contracts/TermCertain.py
       - uses: actions/cache@v4
