@@ -6,9 +6,11 @@
   "project": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
   "previous_project": "0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2",
   "version": "2.0.0",
-  "status": "DEPLOYED_SOURCE_VERIFIED_RUNTIME_REGRESSIONS_NOT_RUN",
+  "status": "DEPLOYED_SOURCE_VERIFIED_CORE_RUNTIME_REGRESSIONS_VERIFIED",
   "previous_intelligent_contract": "0x2719e3e965ced1c6bb227ae717A57287AE1D430a",
   "deployed_raw_sha256": "fdbae59da58da5e35febecb5b79c9cafe43edd73d57fa3470af63b6cd0eb4eff",
   "source_match": "AFTER_CRLF_TO_LF_NORMALIZATION",
-  "rubric_hash": "c356c5f798ba0ec36226c7aac12c38b01b9e3fca9334f6b873e566fcacd91e45"
+  "rubric_hash": "c356c5f798ba0ec36226c7aac12c38b01b9e3fca9334f6b873e566fcacd91e45",
+  "runtime_evidence": "RUNTIME_EVIDENCE.md",
+  "live_validation_date": "2026-10-18"
 }

@@ -1,0 +1,50 @@
+{
+  "checked_at": "2026-10-18T06:04:01.230Z",
+  "network": "StudioNet",
+  "transactions": [
+    {
+      "hash": "0x1ce78596c6c872518c167acfdd8a7503fc4b307abb104b442abe355c70ea9042",
+      "status": "FINALIZED",
+      "from": "0x923a09d0D6e5C242e36C3c1D2071835917cC0bDF",
+      "to": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+      "consensus_result": "MAJORITY_AGREE",
+      "leader_receipts": [
+        {
+          "execution_result": "SUCCESS",
+          "result_tag": 0,
+          "calldata": {
+            "args": [
+              "0x10aaa763db250e4856210dfb91b57780f60e9879",
+              "the other side",
+              "The amount is whatever the published list says on the day of order."
+            ],
+            "method": "open_term"
+          },
+          "eq_outputs": {
+            "0": "ABYMZml4ZWRfYW1vdW50DDAHb3V0Y29tZWRUT19CRV9BR1JFRUQ="
+          }
+        }
+      ]
+    },
+    {
+      "hash": "0xaf1d4ab61912866a8a56f5d4fff66b27f6d5126667907524c1896c498603eadf",
+      "status": "FINALIZED",
+      "from": "0x10AaA763DB250e4856210Dfb91B57780F60e9879",
+      "to": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+      "consensus_result": "MAJORITY_AGREE",
+      "leader_receipts": [
+        {
+          "execution_result": "SUCCESS",
+          "result_tag": 0,
+          "calldata": {
+            "args": [
+              "a7732854c638c966b2f2d8683279ad0efea720a710209d2f8d36ce49e91e5b80"
+            ],
+            "method": "countersign"
+          },
+          "eq_outputs": {}
+        }
+      ]
+    }
+  ]
+}

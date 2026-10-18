@@ -5,7 +5,12 @@
 Pinned records amounts and signatures on GenLayer. It holds and moves no funds.
 The contract is `contracts/TermCertain.py`, version 2.0.0.
 
-**Status: v2 Project deployed and source checked; runtime regression tests remain NOT RUN.**
+**Status: core v2 live regressions verified on StudioNet on 2026-10-18.**
+
+The validator-derived 4000 rejected a signed Studio write of 3999 without mutation,
+then finalized only 4000. A missing price-list term required two different wallets
+and became FINAL only after counter-signing. See RUNTIME_EVIDENCE.md for receipts
+and remaining semantic/fault-test limits.
 
 Project contract: [0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8](https://explorer-studio.genlayer.com/address/0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8).
 A finalized-state get_limits read returned TermCertain 2.0.0 with fixed_amount_required=true.

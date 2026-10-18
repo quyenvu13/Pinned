@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-10-18T05:59:44.852Z",
+  "network": "StudioNet",
+  "contract": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+  "term_id": "a7732854c638c966b2f2d8683279ad0efea720a710209d2f8d36ce49e91e5b80",
+  "get_term": {
+    "term_id": "a7732854c638c966b2f2d8683279ad0efea720a710209d2f8d36ce49e91e5b80",
+    "author": "0x923a09d0d6e5c242e36c3c1d2071835917cc0bdf",
+    "other_wallet": "0x10aaa763db250e4856210dfb91b57780f60e9879",
+    "other_label": "the other side",
+    "text": "The amount is whatever the published list says on the day of order.",
+    "outcome": "TO_BE_AGREED",
+    "certainty": "OPEN_TERM",
+    "state": "AWAITING",
+    "fixed_amount": "0",
+    "amount": 0,
+    "proposed_by": "",
+    "countersigned_by": "",
+    "round_count": 0,
+    "max_rounds": 10,
+    "signatures_required": 2,
+    "signatures_held": 0,
+    "binding": false
+  },
+  "get_rounds": {
+    "term_id": "a7732854c638c966b2f2d8683279ad0efea720a710209d2f8d36ce49e91e5b80",
+    "round_count": 0,
+    "offset": 0,
+    "rounds": []
+  }
+}

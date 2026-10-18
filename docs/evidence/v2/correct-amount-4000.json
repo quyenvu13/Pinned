@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-10-18T05:57:49.956Z",
+  "network": "StudioNet",
+  "contract": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+  "term_id": "921773119987ae3fbc0f306d6089e10a9f805043ee9817a283150466c45b9f74",
+  "transaction": {
+    "hash": "0xcce447aad3bcca268b56f9acbebdb45157b484a3ad4c3617bdced7d068b9741b",
+    "status": "FINALIZED",
+    "from": "0x923a09d0D6e5C242e36C3c1D2071835917cC0bDF",
+    "to": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+    "consensus_result": "MAJORITY_AGREE"
+  },
+  "leader_receipts": [
+    {
+      "execution_result": "SUCCESS",
+      "result_tag": 0,
+      "calldata": {
+        "args": [
+          "921773119987ae3fbc0f306d6089e10a9f805043ee9817a283150466c45b9f74",
+          "4000"
+        ],
+        "method": "record_amount"
+      }
+    }
+  ],
+  "get_term": {
+    "term_id": "921773119987ae3fbc0f306d6089e10a9f805043ee9817a283150466c45b9f74",
+    "author": "0x923a09d0d6e5c242e36c3c1d2071835917cc0bdf",
+    "other_wallet": "0x10aaa763db250e4856210dfb91b57780f60e9879",
+    "other_label": "the other side",
+    "text": "The amount is 4000.",
+    "outcome": "FIXED",
+    "certainty": "PINNED",
+    "state": "FINAL",
+    "fixed_amount": "4000",
+    "amount": 4000,
+    "proposed_by": "0x923a09d0d6e5c242e36c3c1d2071835917cc0bdf",
+    "countersigned_by": "",
+    "round_count": 1,
+    "max_rounds": 10,
+    "signatures_required": 1,
+    "signatures_held": 1,
+    "binding": true
+  },
+  "get_rounds": {
+    "term_id": "921773119987ae3fbc0f306d6089e10a9f805043ee9817a283150466c45b9f74",
+    "round_count": 1,
+    "offset": 0,
+    "rounds": [
+      {
+        "round": 1,
+        "amount": 4000,
+        "proposed_by": "0x923a09d0d6e5c242e36c3c1d2071835917cc0bdf",
+        "reject_note": ""
+      }
+    ]
+  }
+}

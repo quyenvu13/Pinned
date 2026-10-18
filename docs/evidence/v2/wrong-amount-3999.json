@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-10-18T05:55:11.886520+00:00",
+  "network": "StudioNet",
+  "contract": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+  "term_id": "921773119987ae3fbc0f306d6089e10a9f805043ee9817a283150466c45b9f74",
+  "transaction": {
+    "hash": "0xb3b61577da6e8082c1be2be43ea020b20c41309c56b38034c7505892b408441e",
+    "status": "FINALIZED",
+    "consensus_result": "MAJORITY_AGREE",
+    "from": "0x923a09d0D6e5C242e36C3c1D2071835917cC0bDF",
+    "method": "record_amount",
+    "value": "3999",
+    "execution_result": "ERROR",
+    "result_tag": 1,
+    "user_error": "The amount does not match the validator-derived sum"
+  },
+  "before_and_after_finalized_read": {
+    "state": "AWAITING",
+    "fixed_amount": "4000",
+    "amount": "0",
+    "round_count": 0,
+    "rounds": [],
+    "signatures_held": 0,
+    "binding": false
+  },
+  "verification": "Read-only Studio RPC transaction receipt plus finalized get_term/get_rounds before and after the signed write. Whitelisted receipt fields only."
+}
