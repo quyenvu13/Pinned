@@ -7,9 +7,9 @@ const ME = "0x" + "a".repeat(40);
 const OTHER = "0x" + "b".repeat(40);
 const ID = "1".repeat(64);
 const pinned = (o: Partial<Term> = {}): Term => ({ term_id: ID, author: ME, other_wallet: OTHER, other_label: "the other side",
-  text: "A sum.", outcome: "FIXED", certainty: "PINNED", state: "AWAITING", amount: "0", proposed_by: "", countersigned_by: "",
+  text: "A sum.", outcome: "FIXED", certainty: "PINNED", state: "AWAITING", fixed_amount: "4000", amount: "0", proposed_by: "", countersigned_by: "",
   round_count: 0, max_rounds: 10, signatures_required: 1, signatures_held: 0, binding: false, ...o });
-const open = (o: Partial<Term> = {}) => pinned({ outcome: "TO_BE_AGREED", certainty: "OPEN_TERM", signatures_required: 2, ...o });
+const open = (o: Partial<Term> = {}) => pinned({ outcome: "TO_BE_AGREED", certainty: "OPEN_TERM", signatures_required: 2, fixed_amount: "0", ...o });
 const sub = { me: ME, otherWallet: OTHER, label: " the other side ", text: " A sum. ", termId: ID };
 
 test("open postcondition: either reading, but outcome/certainty/threshold must agree", () => {
@@ -46,4 +46,11 @@ test("reject postcondition: back to AWAITING, round kept with its note", () => {
   assert.equal(rejectVerified(before, { ...after, round_count: 0 }, rounds, "Too high"), false);
   assert.equal(rejectVerified(before, after, [], "Too high"), false);
   assert.equal(rejectVerified(before, after, rounds, "Other"), false);
+});
+
+test("finality postcondition requires the unchanged validator amount", () => {
+  const after = pinned({state:"FINAL",amount:"3999",proposed_by:ME,round_count:1,signatures_held:1,binding:true});
+  assert.equal(recordVerified(pinned(), after, ME, 3999n), false);
+  assert.equal(recordVerified(pinned(), {...after,amount:"4000",fixed_amount:"3999"}, ME, 4000n), false);
+  assert.equal(openVerified(pinned({fixed_amount:"0"}),sub),false);
 });

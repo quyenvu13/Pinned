@@ -10,7 +10,7 @@ import {
   WALLET_ADD_RPC,
 } from "./config";
 import { classifyTransaction, type ReceiptVerdict } from "./receipt";
-import { parseRounds, parseTerm } from "./parse";
+import { compatibleContract, CONTRACT_VERSION, parseRounds, parseTerm, type Limits } from "./parse";
 import type { Round, Term } from "./types";
 
 declare global {
@@ -89,7 +89,7 @@ async function view(functionName: string, args: unknown[]): Promise<string> {
     address: requireAddress(),
     functionName,
     args,
-    stateStatus: "accepted",
+    stateStatus: "latest-nonfinal",
   });
   return String(raw ?? "");
 }
@@ -103,8 +103,15 @@ export async function getRounds(id: string): Promise<Round[]> {
   return parseRounds(await view("get_rounds", [id, 0, 50]));
 }
 
+export async function getLimits(): Promise<Limits> {
+  return JSON.parse(await view("get_limits", []));
+}
+
 export async function sendWrite(account: string, functionName: string, args: unknown[]): Promise<string> {
+  if (!compatibleContract(await getLimits())) throw new Error(`Configure a new TermCertain v${CONTRACT_VERSION} deployment before writing.`);
+  if ((await connectedWallet()) !== account.toLowerCase()) throw new Error("The selected wallet changed; reconnect before signing.");
   await ensureStudioNet();
+  if ((await connectedWallet()) !== account.toLowerCase()) throw new Error("The selected wallet changed; reconnect before signing.");
   const client: any = createClient({
     chain: proxiedChain(),
     account: account as `0x${string}`,

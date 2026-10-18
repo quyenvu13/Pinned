@@ -1,122 +1,101 @@
-Pinned does not ask which side of a number is the wrong side, and it does not grade certainty on a scale. It asks whether a stranger holding this text and the relevant records could arrive at the sum alone — and it turns that answer into the number of signatures a later write needs before the sum binds anybody.
+# Pinned 2.0
 
-<p><img src="logo.png" alt="Pinned logo" width="96"></p>
+<img src="public/logo.png" alt="Pinned" width="96">
 
-# Pinned
+Pinned records amounts and signatures on GenLayer. It holds and moves no funds.
+The contract is `contracts/TermCertain.py`, version 2.0.0.
 
-**The contract holds no money and moves no money. It is not an escrow.** It records a sum, how many signatures that
-sum needs and how many it has.
+**Status: v2 Project deployed and source checked; runtime regression tests remain NOT RUN.**
 
-A GenLayer dApp on StudioNet (chain 61999) built on the Intelligent Contract `TermCertain`
-(`contracts/TermCertain.py`, py-genlayer v0.2, `# v0.2.16`).
+Project contract: [0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8](https://explorer-studio.genlayer.com/address/0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8).
+A finalized-state get_limits read returned TermCertain 2.0.0 with fixed_amount_required=true.
+Deployed source matches the supplied contract after CRLF-to-LF normalization; raw
+byte hashes differ only because of line endings. The deploy transaction hash has
+not been supplied. The v1 address is historical and cannot demonstrate this fix.
 
-| | |
-|---|---|
-| Live app | https://pinned-three.vercel.app |
-| Project contract | [`0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2`](https://explorer-studio.genlayer.com/address/0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2) |
-| Intelligent Contract (separate submission) | `0x2719e3e965ced1c6bb227ae717A57287AE1D430a` |
-| Source SHA-256 | `f97f02ce20d5395791eccdaabeabed3ba434155a2695e7bd0b9f8f7ccaf357a5` (`SOURCE_SHA256.txt`) |
-| Evidence | `RUNTIME_EVIDENCE.md` · `TESTING.md` |
+## Fix requested by the steward
 
-## What it does
+V1 used the FIXED classification only to lower the signature threshold. An author
+could then finalize any in-range number, even when it did not match the term.
+V2 makes validators derive an exact amount at opening. The agreed result includes
+both `outcome` and `fixed_amount`. For a PINNED term, the contract stores that
+amount immutably and rejects every different value before any state or round write.
 
-An author opens a term naming the other side and a text about a sum. GenLayer validators read it **once**:
+For example, if validators derive 4000, `record_amount(id, 3999)` reverts and
+leaves the term AWAITING. `record_amount(id, 4000)` can become FINAL. This is an
+amount check enforced in the contract; bypassing the frontend does not bypass it.
 
-- **`FIXED`** → `PINNED`, **1 signature**: the author records the sum once and it is FINAL at once;
-- **`TO_BE_AGREED`** → `OPEN_TERM`, **2 signatures**: either side proposes a sum, which binds nobody until the other
-  side counter-signs; the other side may reject it instead, and the term opens again, up to ten proposals.
+## Two paths
 
-On a pinned term, Counter-sign and Reject do not exist; on an open term, the side that proposed a sum can neither sign
-nor reject it. Unclear output fails safe to two signatures: when it is unclear who agreed to what about money, nobody has.
-
-The same method, the same wallet, the same number 4000 — one term is FINAL, the other is a proposal. The only
-difference between the two terms is the text.
-
-## What the app shows
-
-![The same 4,000 from the same wallet: 1 of 1 binding next to 1 of 2 not binding yet](docs/evidence/1-same-sum-side-by-side.png)
-
-- **A signature gauge** under every text, read from `get_term`: *Signatures: 0 of 1 — not binding yet* the moment a
-  term is opened, then *1 of 1 — binding* or *1 of 2 — not binding yet*, then *2 of 2 — binding*. The app never works
-  out the threshold itself.
-- **A state chip**: AWAITING, FINAL, or PROPOSED — striped amber, with *This sum does not bind anyone yet*.
-- **Record amount, Counter-sign and Reject** are on every term. When disabled they show the contract's own sentence for
-  the step that blocked them — on a pinned term two different sentences, *This sum is fixed by the text; no
-  counter-signature is needed* and *There is nothing to reject; the text fixes this sum*.
-- **The negotiation ledger** of an open term: every round, its amount, the full address that proposed it, and the
-  rejection note; *Round N of 10*.
-- **Side by side**: two terms seen by the same wallet.
-- The id of a new term is computed locally and shown before sending; the app checks the accepted state first and never
-  sends a duplicate. Success is reported only after the transaction is ACCEPTED and the reloaded state shows the change.
-  Amounts are kept as decimal strings end to end (10^18 does not fit a JS number). A live meter blocks calldata over
-  255 bytes.
-
-![The pinned term: two locked buttons, two different sentences](docs/evidence/2-pinned-two-locked-buttons.png)
-
-![The open term after two rounds from two wallets: 2 of 2, binding](docs/evidence/3-open-term-two-signatures.png)
-
-## How to try it
-
-Open your own terms — nothing here depends on shared state. You need **two wallets of your own** on GenLayer StudioNet
-to see the whole loop; one wallet is enough to open terms, record a sum and see the disabled buttons. **One wallet alone
-can never take an open term to FINAL** — that is the mechanism, not a fault.
-
-1. Connect your **first wallet** (author). On *Open a term*, enter your **second wallet** as the other side, label
-   `the other side`, and `The amount is whatever the published list says on the day of order.` Open it, then open
-   `The amount is whatever the parties arrive at in good faith.` Both gauges read 0 of 1 and 0 of 2. Copy both ids.
-2. On both, record `4000`. Open *Side by side*: *Signatures: 1 of 1 — binding* next to *Signatures: 1 of 2 — not
-   binding yet*.
-3. Switch MetaMask to your **second wallet**. On the first term, Counter-sign and Reject are disabled with two different
-   sentences. On the second, reject with a note, then propose `3500`.
-4. Switch back to the author and counter-sign: 2 of 2, binding; the ledger shows two rounds from two wallets.
-
-## Methods
-
-| Write | Who | Notes |
+| Reviewed result | Stored data | Later amount |
 |---|---|---|
-| `open_term(other_wallet, other_label, text)` | author | the only model call |
-| `record_amount(term_id_hex, value)` | PINNED: author · OPEN_TERM: either side | state → caller → 1 ≤ value ≤ 10^18 → round cap |
-| `countersign(term_id_hex)` | OPEN_TERM, not the proposer | threshold → PROPOSED → not the proposer → a named side |
-| `reject_amount(term_id_hex, note)` | OPEN_TERM, not the proposer | same order, then a 1–60 character note |
+| FIXED with a valid derived integer | PINNED, immutable fixed_amount, one signature required | Only the author and only that exact amount can finalize |
+| TO_BE_AGREED or unusable assessment | OPEN_TERM, fixed_amount zero sentinel, two signatures required | Either side proposes; the other signs or rejects |
 
-Views: `get_term` (every field plus `outcome`, `signatures_required`, `signatures_held`, `binding`), `get_round`,
-`get_rounds`, `get_rubric`, `get_limits`. Unknown id → `"{}"`. No preview or dry-run view. Full rules: `LOCKED_SPEC.md`.
+A reference to a price list, invoice, earlier amount or quantity is insufficient
+when its necessary data is absent. No external records or web access are supplied.
+All calculation inputs must appear in the term text. The other-side label is not
+a source of calculation inputs. Units are positive whole-number units from the
+text, with no silent currency or major/minor-unit conversion.
 
-## Run locally
+The model returns exactly two fields. FIXED requires a canonical decimal string
+between 1 and 10^18. Missing amounts, numeric/boolean values, fractional or exponent
+notation, leading zeros, extra fields and out-of-range values cannot open the
+one-signature route. Validators independently evaluate and compare the complete
+label-and-amount result, including the amount. Malformed outputs use the stricter
+two-signature path; an uncaught execution or consensus failure rolls back.
 
-```
+## Run
+
+```sh
 npm ci
-npm run dev          # http://localhost:5173, proxied to StudioNet
-npm test             # frontend logic tests
+npm test
 npm run build
-python3 -m pytest tests/contract -q    # contract tests in GenLayer Direct Mode
+npm run verify:source
+npm run calldata
+python3 -m pip install -r requirements-test.txt
+python3 -m pytest tests/contract -q -p no:cacheprovider
 ```
 
-`VITE_CONTRACT_ADDRESS` overrides the Project address in `src/lib/config.ts`.
+Local tests use the actual pinned v0.2.16 SDK with mocked model responses. They do
+not demonstrate that live validators derive the correct number. `TESTING.md`
+records the current checks; `RUNTIME_EVIDENCE.md` separates old evidence and v2 gaps.
 
-## Honest limitation
+## Deploy and configure
 
-1. **The contract holds no money and moves no money.** It records a sum, how many signatures it needs and how many it
-   has. It is not an escrow.
-2. **FINAL binds on this ledger, not in law.** The contract enforces nothing off chain, collects nothing and replaces no
-   agreement. Its value is that the threshold is frozen before any number exists, so neither side picks the threshold
-   after seeing the number.
-3. **A wrong `FIXED` is the main risk, and no method undoes it** — a sum would bind the other side without its
-   signature. Nets: the fail-safe, the signature gauge shown before any amount is recorded, and the error showing at the
-   first `record_amount`, when the other side sees FINAL without having signed. On StudioNet the validators were split
-   on X3 (a rule, "the same as the first") and needed two leader rotations to accept `FIXED`.
-4. **A wrong `TO_BE_AGREED` leaves the author waiting.** The other side can stall, and a sum the text did pin stays
-   unbound. The cost falls on the writer of the unclear sentence and nobody is bound to a sum they did not accept — on
-   purpose.
-5. **The author declares the other side's wallet.** `open_term` refuses the author's own wallet and `countersign`
-   refuses the proposer, but a second wallet is cheap — and here that matters most, because the whole value of the
-   threshold of 2 is that the second signature comes from someone else. The contract cannot prove that two wallets are
-   two people. This is the largest limitation of the project.
-6. **`MAX_ROUNDS = 10` and `MAX_AMOUNT = 10^18` are hard limits.** If the tenth proposal is rejected, the term stays in
-   AWAITING for good: no new proposal, no FINAL, no way out. (Right after the tenth proposal the term is still PROPOSED
-   and can be signed.) `MAX_AMOUNT` also means the app is not meant for amounts in wei.
+Deploy the supplied contract as a NEW instance, with no constructor arguments.
+Do not upgrade v1 storage: the record layout changed. Keep this Project address
+separate from the Intelligent Contract submission address. Update `deployments.json`
+and `src/lib/config.ts` after deployment, and align any Vercel VITE_CONTRACT_ADDRESS
+override. `.env.example` is a public template. No private key is needed in the app.
+Writes stay disabled until a fresh get_limits read identifies TermCertain 2.0.0
+with fixed_amount_required=true. The same shared check protects UI and signing.
 
-The contract accepts 600 characters of text, but `open_term` at the caps measures 759 bytes of calldata; only texts up
-to about 163 characters fit the 255-byte limit. Longer ones would be refused by the RPC, and the app blocks them.
+## Important live checks
 
-License: MIT.
+Use two consenting test wallets A and B. Open `The amount is 4000.` as A naming B.
+Confirm FIXED and fixed_amount 4000. Send an actual wrong in-range amount, 3999,
+from Studio: it must revert with no mutation. The dApp blocks that known mismatch
+before signing. Then record 4000: only that value may become FINAL.
+
+On a fresh term use `The amount is whatever the published list says on the day of order.`
+The list is absent, so the expected result is TO_BE_AGREED, not an invented amount.
+A proposal must remain non-binding until the other wallet counter-signs. Record
+unexpected classifications rather than changing inputs to manufacture a pass.
+
+The app displays the validator-derived amount before recording. Decimal strings
+preserve large amounts exactly. It reads signature requirements from the contract
+and measures full calldata before signing. Some permitted 600-character texts will
+not fit the 255-byte transaction transport; the app blocks those calls.
+
+## Limits
+
+FINAL describes this ledger, not legal enforceability or performance of an off-chain
+agreement. Model consensus can still derive an incorrect amount. User-authored
+records are not verified business facts. This patch does not prove semantic
+accuracy, eliminate prompt injection, prevent collusion or identify real people.
+One person may control both wallets. No funds are in custody. OPEN_TERM retains a
+ten-proposal cap; rejecting the tenth leaves it awaiting with no further proposal.
+
+Historical v1 receipts/screenshots under docs/history and docs/evidence are not v2
+passes. The original reviewed defect remains documented. License: MIT.

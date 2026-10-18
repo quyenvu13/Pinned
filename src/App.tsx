@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CONTRACT_ADDRESS, EXPLORER_BASE } from "./lib/config";
 import { calldataBytes, CALLDATA_LIMIT } from "./lib/calldata";
 import { errorMessage } from "./lib/errors";
-import { connectedWallet, ensureStudioNet, getRounds, getTerm, requestWallet, sendWrite, waitForVerdict } from "./lib/genlayer";
+import { connectedWallet, ensureStudioNet, getLimits, getRounds, getTerm, requestWallet, sendWrite, waitForVerdict } from "./lib/genlayer";
+import { compatibleContract, CONTRACT_VERSION, type Limits } from "./lib/parse";
 import { short, termId } from "./lib/ids";
 import { pyLen, pyStrip } from "./lib/pytext";
 import {
@@ -24,7 +25,7 @@ import { countersignVerified, openVerified, recordVerified, rejectVerified } fro
 type Tab = "overview" | "open" | "inspect" | "compare";
 type Loaded = { term: Term; rounds: Round[] };
 
-const RECENT_KEY = "pinned.recent";
+const RECENT_KEY = `pinned.v2.${CONTRACT_ADDRESS.toLowerCase()}.recent`;
 
 function readRecent(): string[] {
   try {
@@ -117,6 +118,7 @@ function TermCard({ data, me, busy, onRecord, onCountersign, onReject }: CardPro
           <p className="gauge-line">{signatureLine(t)}</p>
         </div>
         {t.state === "PROPOSED" && <p className="unbound">This sum does not bind anyone yet</p>}
+        {pinned && <p className="unbound">Validator-derived amount: <strong>{groupDigits(t.fixed_amount)}</strong>. Only this amount can become final.</p>}
         <div className="sum-row">
           <div><span>Amount on record</span><strong>{t.amount === "0" ? "—" : groupDigits(t.amount)}</strong></div>
           <div><span>proposed_by</span><code>{t.proposed_by || "—"}</code></div>
@@ -185,6 +187,13 @@ function TermCard({ data, me, busy, onRecord, onCountersign, onReject }: CardPro
 
 export default function App() {
   const [me, setMe] = useState("");
+  const [limits, setLimits] = useState<Limits | null>(null);
+  const [contractError, setContractError] = useState("");
+  const ready = !!CONTRACT_ADDRESS && compatibleContract(limits);
+  useEffect(() => {
+    if (!CONTRACT_ADDRESS) { setContractError("Configure a new TermCertain v2.0.0 Project deployment to enable writes."); return; }
+    getLimits().then((value) => { setLimits(value); if (!compatibleContract(value)) setContractError("The configured contract is incompatible with the amount-bound version."); }).catch(() => setContractError("Contract compatibility could not be checked. Writes are disabled."));
+  }, []);
   const [tab, setTab] = useState<Tab>("overview");
   const [tx, setTx] = useState<TxStatus>({ phase: "idle", message: "" });
   const [pendingHash, setPendingHash] = useState("");
@@ -203,7 +212,7 @@ export default function App() {
   const [rightId, setRightId] = useState("");
   const [pair, setPair] = useState<[Loaded | null, Loaded | null]>([null, null]);
 
-  const busy = ["checking", "signing", "submitted"].includes(tx.phase) || pendingHash !== "";
+  const busy = !ready || ["checking", "signing", "submitted"].includes(tx.phase) || pendingHash !== "";
 
   useEffect(() => {
     connectedWallet().then(setMe).catch(() => undefined);
@@ -431,6 +440,7 @@ export default function App() {
         </header>
 
         <main className="main">
+          {!ready && <section className="panel" role="status"><strong>Writes disabled</strong><p>{contractError || `Checking TermCertain ${CONTRACT_VERSION}…`}</p></section>}
           {tab === "overview" && (
             <>
               <section className="hero">
@@ -438,9 +448,7 @@ export default function App() {
                   <p className="eyebrow">Builder project · Intelligent contracts</p>
                   <h1>Pinned,<br /><em>or still open.</em></h1>
                   <p className="lead">
-                    Pinned asks validators whether a stranger holding a text and the relevant records could arrive at the sum
-                    alone. If yes, the author records it once and it binds at once. If not, it is only a proposal until the
-                    other side counter-signs. The contract holds no money and moves nothing.
+                    Pinned asks validators to derive one exact amount from the supplied term text. The author can finalize only that amount. If inputs are missing or the sum needs agreement, it remains a proposal until the other side signs. No money is held or moved.
                   </p>
                   <div className="row">
                     <button className="btn-accent" onClick={() => setTab("open")}>Open a term</button>
@@ -460,7 +468,7 @@ export default function App() {
                   </div>
                   <div className="diagram-foot">
                     <span>Semantic verdict</span>
-                    <strong>FIXED → PINNED, 1 signature &nbsp;/&nbsp; TO_BE_AGREED → OPEN_TERM, 2 signatures</strong>
+                    <strong>FIXED → exact amount, 1 signature &nbsp;/&nbsp; TO_BE_AGREED → OPEN_TERM, 2 signatures</strong>
                   </div>
                 </div>
               </section>
@@ -475,8 +483,8 @@ export default function App() {
               <section className="path" id="reviewer-path">
                 <p className="eyebrow">Reviewer path · two wallets of your own</p>
                 <ol>
-                  <li><b>1</b><div><strong>Open two terms</strong><span>With your first wallet, name your second wallet as the other side and open one text that pins the sum and one that leaves it to be agreed (the two sentences are in the README).</span></div></li>
-                  <li><b>2</b><div><strong>Record the same sum on both</strong><span>Side by side: the first reads “Signatures: 1 of 1 — binding”, the second “Signatures: 1 of 2 — not binding yet”.</span></div></li>
+                  <li><b>1</b><div><strong>Open two terms</strong><span>With your first wallet, name your second wallet as the other side. Compare a self-contained amount with a term requiring later agreement; examples are in the README.</span></div></li>
+                  <li><b>2</b><div><strong>Verify the amount before finality</strong><span>On a pinned term, a different amount is blocked. Recording its validator-derived amount makes it final. An open term stays a proposal until the other side signs.</span></div></li>
                   <li><b>3</b><div><strong>Reject, then propose back</strong><span>With your second wallet, reject the open term and propose another sum. Counter-sign and Reject stay disabled on the pinned term.</span></div></li>
                   <li><b>4</b><div><strong>Counter-sign</strong><span>With your first wallet, counter-sign: 2 of 2, binding. One wallet alone can never take an open term to FINAL.</span></div></li>
                 </ol>
@@ -514,9 +522,7 @@ export default function App() {
               <p className="eyebrow">Author</p>
               <h3>Open a term</h3>
               <p className="muted">
-                Name the other side and write the text about the sum. The validators read it once: if the text already fixes
-                the sum, one signature (yours) will bind it; if it leaves the sum to be agreed, it will take two. Unclear
-                wording takes two. The contract holds no money and moves nothing.
+                Name the other side and include every input needed to derive the amount in the text. Validators must agree on the exact integer before the one-signature route is available. Missing external schedules or calculation inputs require two-party agreement. No external records are fetched.
               </p>
               <div className="grid2">
                 <label>Other side's wallet<input value={other} onChange={(e) => setOther(e.target.value)} placeholder="0x…" spellCheck={false} /></label>
@@ -539,7 +545,7 @@ export default function App() {
             <section className="panel">
               <p className="eyebrow">Same connected wallet</p>
               <h3>Side by side</h3>
-              <p className="muted">Two terms, the same sum from the same wallet. One binds with one signature; the other waits for a second — and the only difference is the text.</p>
+              <p className="muted">Compare the validator-derived amount and signature requirements. A pinned term accepts only its derived amount; an open term needs the other side to sign.</p>
               <div className="grid2">
                 <input value={leftId} onChange={(e) => setLeftId(e.target.value)} placeholder="first term id" spellCheck={false} />
                 <input value={rightId} onChange={(e) => setRightId(e.target.value)} placeholder="second term id" spellCheck={false} />

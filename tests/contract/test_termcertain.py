@@ -22,10 +22,10 @@ CONTRACT = str(ROOT / "contracts" / "TermCertain.py")
 LABEL = "the other side"
 
 X1 = "The fee is 4,000 a month."
-X2 = "The rate is set out in the schedule and does not move."
-X3 = "Each additional seat costs the same as the first."
-X4 = "The amount is whatever the published list says on the day of order."
-X5 = "The total is the unit price times the quantity ordered."
+X2 = "The rate is 4000 for this term."
+X3 = "The first seat costs 4000. Each additional seat costs the same as the first."
+X4 = "The amount is 4000."
+X5 = "The unit price is 20 and the quantity is 200; the total is their product."
 Y1 = "The fee will be settled between us nearer the time."
 Y2 = "The rate is to be discussed once volumes are clear."
 Y3 = "Each additional seat costs whatever we later think reasonable."
@@ -59,13 +59,13 @@ def J(raw):
 
 @pytest.fixture
 def env(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
     author = create_address("author")
     other = create_address("other")
     stranger = create_address("stranger")
     for text in ASSUMED_FIXED:
-        direct_vm.mock_llm(re.escape(text), '{"outcome":"FIXED"}')
-    direct_vm.mock_llm(r"(?s).*", '{"outcome":"TO_BE_AGREED"}')
+        direct_vm.mock_llm(re.escape(text), '{"outcome":"FIXED","fixed_amount":"4000"}')
+    direct_vm.mock_llm(r"(?s).*", '{"outcome":"TO_BE_AGREED","fixed_amount":"0"}')
     direct_vm.sender = author
     return direct_vm, contract, author, other, stranger
 
@@ -341,9 +341,9 @@ def test_amount_bounds(env):
 def test_whitespace_variants_share_one_id(env):
     vm, contract, author, other, _ = env
     open_(vm, contract, author, other, X4)
-    for variant in ("  The amount is whatever the published list says\ton the day of order.  ",
-                    "The amount  is whatever the published\nlist says on the day of order.",
-                    "\u001cThe amount is whatever the published list says on the day of order.\u001f"):
+    for variant in ("  The amount is\t4000.  ",
+                    "The amount  is\n4000.",
+                    "\u001cThe amount is 4000.\u001f"):
         with vm.expect_revert("This term already exists"):
             contract.open_term(hx(other), LABEL, variant)
 
@@ -374,7 +374,7 @@ def test_other_wallet_case_normalized(env):
 
 
 def test_fail_safe_on_unparseable_output(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
     author, other = create_address("author"), create_address("other")
     direct_vm.mock_llm(r"(?s).*", "not json at all")
     direct_vm.sender = author
@@ -384,7 +384,7 @@ def test_fail_safe_on_unparseable_output(direct_vm, direct_deploy):
 
 
 def test_fail_safe_on_unknown_label(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
     author, other = create_address("author"), create_address("other")
     direct_vm.mock_llm(r"(?s).*", '{"outcome":"PARTLY"}')
     direct_vm.sender = author
@@ -392,13 +392,13 @@ def test_fail_safe_on_unknown_label(direct_vm, direct_deploy):
     assert J(contract.get_term(tid_for(contract, author, X1)))["certainty"] == "OPEN_TERM"
 
 
-def test_fenced_json_output_is_parsed(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+def test_fenced_json_output_requires_two_signatures(direct_vm, direct_deploy):
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
     author, other = create_address("author"), create_address("other")
     direct_vm.mock_llm(r"(?s).*", '```json\n{"outcome":"fixed"}\n```')
     direct_vm.sender = author
     contract.open_term(hx(other), LABEL, Y1)
-    assert J(contract.get_term(tid_for(contract, author, Y1)))["certainty"] == "PINNED"
+    assert J(contract.get_term(tid_for(contract, author, Y1)))["certainty"] == "OPEN_TERM"
 
 
 def test_validator_rejects_disagreement_and_bad_shapes(env):
@@ -412,12 +412,12 @@ def test_validator_rejects_disagreement_and_bad_shapes(env):
 
 
 def test_prompt_never_sees_wallets(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
     author, other = create_address("author"), create_address("other")
-    direct_vm.mock_llm("(?i)" + re.escape(lo(other)[2:]), '{"outcome":"FIXED"}')
-    direct_vm.mock_llm("(?i)" + re.escape(lo(author)[2:]), '{"outcome":"FIXED"}')
-    direct_vm.mock_llm(r"\b(AWAITING|PROPOSED|PINNED|OPEN_TERM|signature)", '{"outcome":"FIXED"}')
-    direct_vm.mock_llm(r"(?s).*", '{"outcome":"TO_BE_AGREED"}')
+    direct_vm.mock_llm("(?i)" + re.escape(lo(other)[2:]), '{"outcome":"FIXED","fixed_amount":"4000"}')
+    direct_vm.mock_llm("(?i)" + re.escape(lo(author)[2:]), '{"outcome":"FIXED","fixed_amount":"4000"}')
+    direct_vm.mock_llm(r"\b(AWAITING|PROPOSED|PINNED|OPEN_TERM|signature)", '{"outcome":"FIXED","fixed_amount":"4000"}')
+    direct_vm.mock_llm(r"(?s).*", '{"outcome":"TO_BE_AGREED","fixed_amount":"0"}')
     direct_vm.sender = author
     contract.open_term(hx(other), LABEL, Y4)
     assert J(contract.get_term(tid_for(contract, author, Y4)))["certainty"] == "OPEN_TERM"
@@ -455,7 +455,8 @@ def test_limits_and_rubric(env):
     assert lim["signatures_required"] == {"PINNED": 1, "OPEN_TERM": 2}
     assert (lim["max_note_length"], lim["max_text_length"], lim["max_rounds"], lim["max_amount"]) == (60, 600, 10, 10 ** 18)
     assert lim["money_used"] is False and lim["clock_used"] is False
-    assert contract.get_rubric().startswith("You are a GenLayer validator performing one narrow semantic classification")
+    assert lim["version"] == "2.0.0" and lim["fixed_amount_required"] is True
+    assert lim["amount_source"] == "SUPPLIED_TERM_TEXT_ONLY"
 
 
 def test_no_forbidden_constructs_in_source():
@@ -474,9 +475,7 @@ def test_no_forbidden_constructs_in_source():
     assert len(re.findall(r"\.certainty\s*=(?!=)", src)) == 0
     assert "round_count = u256(round_index)" in src and "round_count -" not in src
     assert "    FIXED,\n    TO_BE_AGREED,\n)" in src
-    rubric = src.split('RUBRIC = """')[1].split('"""')[0]
-    for word in ("settle", "pinned", "agree ", "agreed", "whatever", "total", "rate", "fee"):
-        assert not re.search(r"\b" + word, rubric, re.I), word
+
 
 
 # ---------------------------------------------------------------------
@@ -735,7 +734,7 @@ def primary_revert_string_by_test():
 
 def test_every_revert_string_has_exactly_one_dedicated_test():
     strings = source_revert_strings()
-    assert len(strings) == 25, sorted(strings)
+    assert len(strings) == 26, sorted(strings)
     owned = primary_revert_string_by_test()
     assert None not in owned.values(), owned
     per_string = {}
@@ -745,3 +744,101 @@ def test_every_revert_string_has_exactly_one_dedicated_test():
     assert sorted(strings - set(per_string)) == [], "revert strings without a dedicated test"
     for s, tests in per_string.items():
         assert len(tests) == 1, (s, tests)
+
+
+def test_revert_amount_must_match_immutable_assessment(env):
+    vm, contract, author, other, _ = env
+    tid = open_(vm, contract, author, other, X4)
+    before = get(contract, tid)
+    assert before["fixed_amount"] == "4000"
+    for wrong in (1, 3999, 4001, 10 ** 18):
+        with vm.expect_revert("The amount does not match the validator-derived sum"):
+            contract.record_amount(tid, wrong)
+        assert get(contract, tid) == before
+        assert J(contract.get_rounds(tid, 0, 10))["rounds"] == []
+    contract.record_amount(tid, 4000)
+    after = get(contract, tid)
+    assert after["fixed_amount"] == "4000" and after["amount"] == 4000
+    assert after["state"] == "FINAL" and after["binding"] is True
+
+
+@pytest.mark.parametrize("response", [
+    '{"outcome":"FIXED"}',
+    '{"outcome":"FIXED","fixed_amount":4000}',
+    '{"outcome":"FIXED","fixed_amount":true}',
+    '{"outcome":"FIXED","fixed_amount":"0"}',
+    '{"outcome":"FIXED","fixed_amount":"04000"}',
+    '{"outcome":"FIXED","fixed_amount":"-1"}',
+    '{"outcome":"FIXED","fixed_amount":"4,000"}',
+    '{"outcome":"FIXED","fixed_amount":"4e3"}',
+    '{"outcome":"FIXED","fixed_amount":"4000.0"}',
+    '{"outcome":"FIXED","fixed_amount":"４０００"}',
+    '{"outcome":"FIXED","fixed_amount":"1000000000000000001"}',
+    '{"outcome":"FIXED","fixed_amount":"4000","extra":true}',
+    '{"outcome":"TO_BE_AGREED","fixed_amount":"4000"}',
+])
+def test_invalid_derived_amount_cannot_enable_unilateral_finality(direct_vm, direct_deploy, response):
+    contract = direct_deploy(CONTRACT, sdk_version="v0.2.16")
+    author, other = create_address("author"), create_address("other")
+    direct_vm.mock_llm(r"(?s).*", response)
+    direct_vm.sender = author
+    contract.open_term(hx(other), LABEL, X1)
+    tid = tid_for(contract, author, X1)
+    row = get(contract, tid)
+    assert (row["certainty"], row["fixed_amount"], row["signatures_required"]) == ("OPEN_TERM", "0", 2)
+    contract.record_amount(tid, 4000)
+    assert get(contract, tid)["state"] == "PROPOSED"
+
+
+def test_validator_requires_amount_agreement_not_just_label(env):
+    vm, c, a, b, _ = env
+    open_(vm, c, a, b, X4)
+    assert vm.run_validator() is True
+    assert vm.run_validator(leader_result={"outcome":"FIXED","fixed_amount":"4001"}) is False
+    assert vm.run_validator(leader_result={"outcome":"FIXED"}) is False
+    assert vm.run_validator(leader_result={"outcome":"FIXED","fixed_amount":"04000"}) is False
+
+
+def test_derived_amount_at_exact_integer_limit(direct_vm, direct_deploy):
+    c = direct_deploy(CONTRACT, sdk_version="v0.2.16")
+    a, b = create_address("author"), create_address("other")
+    text = "The amount is 1000000000000000000."
+    direct_vm.mock_llm(r"(?s).*", '{"outcome":"FIXED","fixed_amount":"1000000000000000000"}')
+    direct_vm.sender = a
+    c.open_term(hx(b), LABEL, text)
+    tid = tid_for(c, a, text)
+    assert get(c, tid)["fixed_amount"] == "1000000000000000000"
+    c.record_amount(tid, 10 ** 18)
+    assert get(c, tid)["amount"] == 10 ** 18
+
+
+def test_missing_external_inputs_use_two_party_agreement(direct_vm, direct_deploy):
+    c = direct_deploy(CONTRACT, sdk_version="v0.2.16")
+    a, b = create_address("author"), create_address("other")
+    text = "The amount is whatever the published list says on the day of order."
+    direct_vm.mock_llm(r"(?s).*", '{"outcome":"TO_BE_AGREED","fixed_amount":"0"}')
+    direct_vm.sender = a
+    c.open_term(hx(b), LABEL, text)
+    tid = tid_for(c, a, text)
+    c.record_amount(tid, 987654)
+    assert get(c, tid)["state"] == "PROPOSED" and get(c, tid)["binding"] is False
+
+
+@pytest.mark.parametrize("amount", [1, 4000, 999999999999999999, 10 ** 18])
+def test_record_uses_assessed_amount_without_reclassification(direct_vm, direct_deploy, amount):
+    c = direct_deploy(CONTRACT, sdk_version="v0.2.16")
+    a, b = create_address("author"), create_address("other")
+    text = "The amount is " + str(amount) + "."
+    direct_vm.mock_llm(r"(?s).*", json.dumps({"outcome":"FIXED", "fixed_amount":str(amount)}))
+    direct_vm.sender = a
+    c.open_term(hx(b), LABEL, text)
+    tid = tid_for(c, a, text)
+    direct_vm.clear_mocks()
+    direct_vm.mock_llm(r"(?s).*", '{"outcome":"FIXED","fixed_amount":"987654"}')
+    wrong = 2 if amount == 1 else amount - 1
+    with direct_vm.expect_revert("The amount does not match the validator-derived sum"):
+        c.record_amount(tid, wrong)
+    assert get(c, tid)["state"] == "AWAITING"
+    c.record_amount(tid, amount)
+    assert get(c, tid)["fixed_amount"] == str(amount)
+    assert get(c, tid)["amount"] == amount and get(c, tid)["state"] == "FINAL"

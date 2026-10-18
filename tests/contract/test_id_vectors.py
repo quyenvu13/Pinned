@@ -36,7 +36,7 @@ def build(contract):
 
 
 def test_vectors_match_contract(direct_deploy):
-    data = build(direct_deploy(CONTRACT))
+    data = build(direct_deploy(CONTRACT, sdk_version="v0.2.16"))
     if os.environ.get("WRITE_VECTORS") == "1":
         VECTORS.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     assert json.loads(VECTORS.read_text(encoding="utf-8")) == data

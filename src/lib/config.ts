@@ -1,7 +1,7 @@
 // The Project's own deployment of the frozen TermCertain source (a separate
 // address from the Intelligent Contract submission). Filled after deploy;
 // VITE_CONTRACT_ADDRESS overrides it, e.g. for a fork.
-export const PROJECT_DEPLOYMENT = "0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2";
+export const PROJECT_DEPLOYMENT = "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8";
 export const CONTRACT_ADDRESS = (String(import.meta.env.VITE_CONTRACT_ADDRESS ?? "").trim() || PROJECT_DEPLOYMENT) as `0x${string}` | "";
 
 // Same-origin proxy declared in BOTH vite.config.ts and vercel.json.

@@ -5,6 +5,7 @@
 // _signatures_required — the only place the threshold exists.
 
 import { pyContainsToken, pyLen, pyStrip } from "./pytext.ts";
+import { validDerivedAmount } from "./parse.ts";
 import type { Term } from "./types.ts";
 
 export const MAX_TEXT_LENGTH = 600;
@@ -36,6 +37,7 @@ export const REVERTS = {
   onlyAuthorFixed: "Only the author may record the sum on a fixed term",
   onlySidesPropose: "Only the two named sides may propose a sum",
   outOfRange: "The amount is out of range",
+  amountMismatch: "The amount does not match the validator-derived sum",
   noRoom: "No room for a further round",
   noCountersign: "This sum is fixed by the text; no counter-signature is needed",
   noProposalSign: "There is no proposed sum to counter-sign",
@@ -125,6 +127,7 @@ export function recordBlock(t: Term, me: string, raw: string): string | null {
   }
   const a = parseAmount(raw);
   if (!a.ok) return a.reason;
+  if (t.signatures_required === 1 && (!validDerivedAmount(t.fixed_amount) || a.value !== BigInt(t.fixed_amount))) return REVERTS.amountMismatch;
   if (t.signatures_required === 2 && t.round_count >= t.max_rounds) return REVERTS.noRoom;
   return null;
 }

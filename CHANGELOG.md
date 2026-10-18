@@ -1,13 +1,12 @@
-# CHANGELOG
+# Changelog
 
-## 1.0.0 — 2026-10-04
+## 2.0.0 — deployed, runtime regression tests pending
 
-- `TermCertain` contract frozen (SHA-256 `f97f02ce20d5395791eccdaabeabed3ba434155a2695e7bd0b9f8f7ccaf357a5`).
-- Intelligent Contract run on StudioNet with two wallets: 12 rows, 13 transactions, all as expected (X3 accepted after
-  two leader rotations).
-- Pinned app: terms (load any id without a wallet), open a term, side-by-side view, a signature gauge read from the
-  view before any amount exists, a state chip with PROPOSED marked as not binding, Record / Counter-sign / Reject
-  disabled with the contract's own sentences, the negotiation ledger, exact decimal amounts, live calldata meter,
-  receipt rule (ACCEPTED before success) and postcondition checks.
-- Project deployment of the same frozen source at its own address `0x03bd13f0E6879fd4b6b2f85c642C70E7B3e027f2`.
-- Project run through the live app with two wallets: 7 transactions and 3 screenshots, all as expected.
+- Replace label-only FIXED output with a canonical label and derived amount.
+- Require validator agreement on both fields; missing inputs require two signatures.
+- Store fixed_amount immutably and reject any different one-signature record_amount.
+- Display derived amounts, preserve decimal precision and check postconditions.
+- Gate readiness and signing on the same v2 compatibility rule.
+- Strengthen receipt status checks and RPC probe evidence classification.
+- Retain v1 evidence separately; remove obsolete locked spec and overlap gate.
+- The new Project source and limits are checked. Amount rollback/finality live tests are still required.

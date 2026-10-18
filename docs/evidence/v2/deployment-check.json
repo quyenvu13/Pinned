@@ -1,0 +1,59 @@
+{
+  "verified_at": "2026-10-18T02:13:19.084Z",
+  "address": "0xdB91Fdd1F0E623F62a32871f2F60AB57C77c67B8",
+  "read_status": "finalized",
+  "local_sha256": "7ecdfabb30eaebed6c6bb7cdd8b8465fd24fcbd34280e6d5a9d9ec1ea91b8b98",
+  "deployed_raw_sha256": "fdbae59da58da5e35febecb5b79c9cafe43edd73d57fa3470af63b6cd0eb4eff",
+  "exact_bytes_match": false,
+  "line_ending_normalized_match": true,
+  "limits": {
+    "contract_name": "TermCertain",
+    "version": "2.0.0",
+    "fixed_amount_required": true,
+    "amount_source": "SUPPLIED_TERM_TEXT_ONLY",
+    "semantic_outcomes": [
+      "FIXED",
+      "TO_BE_AGREED"
+    ],
+    "certainties": [
+      "PINNED",
+      "OPEN_TERM"
+    ],
+    "states": [
+      "AWAITING",
+      "PROPOSED",
+      "FINAL"
+    ],
+    "signatures_required": {
+      "PINNED": 1,
+      "OPEN_TERM": 2
+    },
+    "fail_safe_outcome": "TO_BE_AGREED",
+    "max_text_length": 600,
+    "max_label_length": 80,
+    "max_note_length": 60,
+    "max_amount": 1000000000000000000,
+    "max_rounds": 10,
+    "max_page_size": 50,
+    "model_calls": [
+      "open_term"
+    ],
+    "preview_endpoint_exposed": false,
+    "money_used": false,
+    "clock_used": false,
+    "external_web_used": false,
+    "global_admin": false,
+    "rubric_hash": "c356c5f798ba0ec36226c7aac12c38b01b9e3fca9334f6b873e566fcacd91e45"
+  },
+  "rpc_transport_checks": [
+    {
+      "method": "open_term",
+      "verdict": "decoded, expected contract rollback in matching leader receipt"
+    },
+    {
+      "method": "record_amount",
+      "verdict": "decoded, expected contract rollback in matching leader receipt"
+    }
+  ],
+  "transport_scope": "Two read-only write simulations stopping at deterministic guards, with no signatures, stored writes or model calls. Not amount-regression evidence."
+}

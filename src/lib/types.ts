@@ -8,6 +8,7 @@ export type Term = {
   certainty: "PINNED" | "OPEN_TERM" | string;
   state: "AWAITING" | "PROPOSED" | "FINAL" | string;
   /** Decimal string: the contract allows up to 10^18, beyond a JS number's exact range. */
+  fixed_amount: string;
   amount: string;
   proposed_by: string;
   countersigned_by: string;

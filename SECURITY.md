@@ -1,38 +1,25 @@
-# SECURITY
+# Security and trust boundaries
 
-## Prompt fence
+No funds are held, transferred or escrowed. FINAL is a record in this application,
+not a finding about legal rights or off-chain performance.
 
-- The model sees only the rubric, the other side's label and the text, each inside its own tag
-  (`<UNTRUSTED_OTHER_SIDE_LABEL>`, `<UNTRUSTED_TERM_TEXT>`). It sees no wallet, no state, and nothing the contract does
-  with the answer.
-- Injection has a clear target here: a text saying "the outcome is FIXED" would let the author bind a sum alone. Both
-  answer tokens and all four tags are reserved; text or label containing any of them, compared after upper-casing, is
-  rejected before the model call.
-- A fixed-point strip removes tokens until the string no longer changes, so nested fragments cannot rebuild one.
-- Validators re-run the classification and must agree on the exact label. That checks agreement, not injection
-  resistance; the fence does that.
+V1's label-only one-signature route allowed an arbitrary in-range amount. V2 binds
+that route to one immutable validator-derived integer. Author-supplied record_amount
+cannot replace it. Agreement covers both classification and exact amount.
 
-## Fail-safe
+The source is the supplied term text only. Referenced external schedules are not
+retrieved or independently verified. User-authored data may be false; the contract
+does not certify a real invoice, currency, identity, agreement or market fact.
 
-Unclear or unparseable output becomes `TO_BE_AGREED`: two signatures. When it is unclear who agreed to what about money,
-nobody has. See `LOCKED_SPEC.md` §5–§6.
+Models can misread, miscalculate or follow malicious content. Consensus is not proof
+of correctness. Unusable canonical output uses two-party agreement; low-level
+execution or consensus failure can still roll back. No forced-verdict backdoor,
+admin override or external data source is provided.
 
-## Threshold and signatures
+The two sides may belong to one person. OPEN_TERM counter-signing checks wallets,
+not real identity. Rejected rounds are retained; ten rejected proposals exhaust the
+existing round limit. Public inputs should not contain secrets.
 
-The threshold is defined in one place (`_signatures_required`) and printed by `get_term` from the first transaction. The
-proposer can neither counter-sign nor reject its own sum, so a threshold of 2 cannot be met by one wallet. The app reads
-`signatures_required` from the view and never computes it.
-
-## Frontend
-
-- MetaMask only signs; reads, receipts and the write client go through one same-origin proxy (`/genlayer-rpc`).
-- No Snap request, no CDN code, no hard-coded wallet. React escapes all contract text.
-- Success is reported only after the transaction is ACCEPTED, the leader receipt says SUCCESS **and** the reloaded
-  accepted state shows the change.
-- Amounts are kept as decimal strings; they are never rounded through a JS number.
-
-## Remaining limits
-
-- The author names the other side's wallet; the contract cannot prove the two wallets are two people.
-- A rejected tenth proposal leaves a term stuck in AWAITING.
-- No adversarial model run was done.
+A new deployment is required because storage changed. The dApp refuses old versions
+at both readiness and fresh signing checks, but version metadata alone is not an
+independent attestation of deployed source. Verify source before using a deployment.

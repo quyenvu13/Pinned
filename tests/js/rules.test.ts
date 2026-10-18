@@ -16,17 +16,17 @@ const STRANGER = "0x" + "c".repeat(40);
 /** A term the view reports as needing ONE signature. */
 function pinned(o: Partial<Term> = {}): Term {
   return { term_id: "1".repeat(64), author: AUTHOR, other_wallet: OTHER, other_label: "the other side", text: "t",
-    outcome: "FIXED", certainty: "PINNED", state: "AWAITING", amount: "0", proposed_by: "", countersigned_by: "",
+    outcome: "FIXED", certainty: "PINNED", state: "AWAITING", fixed_amount: "4000", amount: "0", proposed_by: "", countersigned_by: "",
     round_count: 0, max_rounds: 10, signatures_required: 1, signatures_held: 0, binding: false, ...o };
 }
 /** A term the view reports as needing TWO signatures. */
-const open = (o: Partial<Term> = {}) => pinned({ outcome: "TO_BE_AGREED", certainty: "OPEN_TERM", signatures_required: 2, ...o });
+const open = (o: Partial<Term> = {}) => pinned({ outcome: "TO_BE_AGREED", certainty: "OPEN_TERM", signatures_required: 2, fixed_amount: "0", ...o });
 const proposedBy = (who: string, o: Partial<Term> = {}) => open({ state: "PROPOSED", amount: "4000", proposed_by: who, round_count: 1, signatures_held: 1, ...o });
 
 test("UI revert strings are exactly the contract's revert strings", () => {
   const fromSource = new Set([...SRC.matchAll(/UserError\(\s*"([^"]+)"\s*\)/g)].map((m) => m[1]));
   assert.deepEqual([...new Set(Object.values(REVERTS))].sort(), [...fromSource].sort());
-  assert.equal(fromSource.size, 25);
+  assert.equal(fromSource.size, 26);
 });
 
 test("threshold parity: the view's signatures_required comes from the contract's _signatures_required (run in Python)", () => {
@@ -100,7 +100,7 @@ test("record order: state -> caller -> amount -> round cap", () => {
   assert.equal(recordBlock(open({ round_count: 10 }), AUTHOR, "0"), REVERTS.outOfRange);
   assert.equal(recordBlock(open({ round_count: 10 }), AUTHOR, "5"), REVERTS.noRoom);
   assert.equal(recordBlock(open({ round_count: 9 }), OTHER, "5"), null);
-  assert.equal(recordBlock(pinned({ round_count: 10 }), AUTHOR, "5"), null);   // the cap is for open terms only
+  assert.equal(recordBlock(pinned({ round_count: 10 }), AUTHOR, "4000"), null);   // the cap is for open terms only
 });
 
 test("counter-sign: never on a pinned term, never by the proposer", () => {
@@ -133,4 +133,10 @@ test("role badge", () => {
   assert.equal(roleOf(pinned(), AUTHOR), "author");
   assert.equal(roleOf(pinned(), OTHER.toUpperCase().replace("0X", "0x")), "other side");
   assert.equal(roleOf(pinned(), STRANGER), "neither side");
+});
+
+test("wrong in-range amount cannot use the one-signature route", () => {
+  for (const amount of ["1", "3999", "4001", "1000000000000000000"]) assert.equal(recordBlock(pinned(), AUTHOR, amount), REVERTS.amountMismatch);
+  assert.equal(recordBlock(pinned(), AUTHOR, "4000"), null);
+  assert.equal(recordBlock(pinned({fixed_amount:""}), AUTHOR, "4000"), REVERTS.amountMismatch);
 });

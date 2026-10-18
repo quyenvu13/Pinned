@@ -6,7 +6,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = new URL("../../", import.meta.url).pathname;
-const DOCS = ["README.md", "LOCKED_SPEC.md", "TEST_PLAN.md", "TESTING.md", "RUNTIME_EVIDENCE.md", "SECURITY.md", "CHANGELOG.md"];
+const DOCS = ["README.md", "TESTING.md", "RUNTIME_EVIDENCE.md", "SECURITY.md", "CHANGELOG.md"];
 const read = (p: string) => readFileSync(join(root, p), "utf8");
 
 test("every Python test cited in the docs exists", () => {

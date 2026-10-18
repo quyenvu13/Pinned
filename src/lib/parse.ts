@@ -25,3 +25,12 @@ export function parseRounds(raw: string): Round[] {
   const obj = parseObject(raw);
   return obj && Array.isArray(obj.rounds) ? (obj.rounds as Round[]) : [];
 }
+
+export const CONTRACT_VERSION = "2.0.0";
+export type Limits = { contract_name?: string; version?: string; fixed_amount_required?: boolean };
+export function compatibleContract(limits: Limits | null | undefined): boolean {
+  return limits?.contract_name === "TermCertain" && limits.version === CONTRACT_VERSION && limits.fixed_amount_required === true;
+}
+export function validDerivedAmount(value: unknown): value is string {
+  return typeof value === "string" && /^[1-9][0-9]{0,18}$/.test(value) && BigInt(value) <= 10n ** 18n;
+}
